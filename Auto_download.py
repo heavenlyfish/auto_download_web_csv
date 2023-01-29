@@ -1,10 +1,11 @@
 import requests
 import pandas as pd
-#import csv
+import csv
 from datetime import datetime, date
 from bs4 import BeautifulSoup
 import os
-
+#library for processing csv file from url
+import urllib.request
 
 url='https://www.tpex.org.tw/web/bond/tradeinfo/cb/CBSuspend.php?l=zh-tw'
 host_url = 'www.tpex.org.tw'
@@ -60,9 +61,33 @@ df = pd.DataFrame(lsts, columns = ['DATE','XLS-LINK','CSV-LINK'])
 #Locate current file directory
 #print(os.getcwd())
 
-filePath = "CB停轉資訊-" + df['DATE'].iloc[0] + '.csv'
-#print(filePath)
-if ~os.path.exists(filePath):
-    print(filePath + ' file not exists. create file')
-    df.to_csv(filePath, index=False, encoding='utf-8-sig') 
+filePath = "CB停轉資訊/CB停轉資訊-" + df['DATE'].iloc[0] + '.csv'
+print(filePath)
 
+def check_File_Exist():
+    if os.path.exists(filePath):
+        print(filePath + " File exists.Dont Create File")
+        return
+    
+    print('File not exists. create file: ' + filePath)
+    #print(df['CSV-LINK'].iloc[0])
+    #use urllib.request & csv module to read and save csv files
+    req = urllib.request.urlopen(df['CSV-LINK'].iloc[0])
+    csv_reader = csv.reader(req.read().decode('big5').splitlines())
+    lists_of_csv = list(csv_reader)
+
+    #['HEADER', '債券代碼', '債券簡稱', '停止轉(交)換起日', '停止轉(交)換迄日', '停止轉(交)換事由']
+    list2df = []
+    for list_of_csv in lists_of_csv:
+        if len(list_of_csv) > 0:
+            if list_of_csv[0] == "BODY" :
+                #print(list_of_csv)
+                list2df.append((list_of_csv[1],list_of_csv[2],list_of_csv[3],list_of_csv[4],list_of_csv[5]))
+    
+    Data_In_DF = pd.DataFrame(list2df,columns=['債券代碼', '債券簡稱', '停止轉(交)換起日', '停止轉(交)換迄日', '停止轉(交)換事由'])
+    #print(Data_In_DF)
+
+    Data_In_DF.to_csv(filePath, index=False, encoding='big5') 
+    
+
+check_File_Exist()
