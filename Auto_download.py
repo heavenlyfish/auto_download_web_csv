@@ -60,9 +60,9 @@ df = pd.DataFrame(lsts, columns = ['DATE','XLS-LINK','CSV-LINK'])
 #Locate current file directory
 #print(os.getcwd())
 
-filePath = "CB停轉資訊-" + lsts[0][0] + '.csv'
-print(filePath)
-if os.path.exists(filePath):
-    print(filePath + ' exists. Existing')
-    #continue
+filePath = "CB停轉資訊-" + df['DATE'].iloc[0] + '.csv'
+#print(filePath)
+if ~os.path.exists(filePath):
+    print(filePath + ' file not exists. create file')
+    df.to_csv(filePath, index=False, encoding='utf-8-sig') 
 
